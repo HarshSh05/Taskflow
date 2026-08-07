@@ -1,0 +1,71 @@
+### Backend (Maven / Spring Boot / Java) ###
+backend/target/
+target/
+*.class
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.properties
+
+# Spring Boot
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-*.properties
+!backend/src/main/resources/application.properties
+!backend/src/main/resources/application-example.properties
+HELP.md
+
+### Frontend (React / Node) ###
+frontend/node_modules/
+node_modules/
+frontend/build/
+frontend/dist/
+build/
+dist/
+frontend/.eslintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+### Env files (keep the .env.example templates) ###
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+### Docker ###
+docker-compose.override.yml
+
+### Database ###
+*.sql.bak
+database/*.db
+
+### Logs ###
+logs.txt
+*.log
+logs/
+
+### IDEs / Editors ###
+.idea/
+*.iml
+*.iws
+.vscode/
+*.swp
+*.swo
+.classpath
+.project
+.settings/
+
+### OS files ###
+.DS_Store
+Thumbs.db
+
+### Misc ###
+*.tmp
+*.bak
+*.orig

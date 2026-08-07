@@ -1,0 +1,4 @@
+#!/bin/sh
+# Maven Wrapper script
+MAVEN_PROJECTBASEDIR=$(dirname "$0")
+exec "$MAVEN_PROJECTBASEDIR/.mvn/wrapper/mvnw" "$@"

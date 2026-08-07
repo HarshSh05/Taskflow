@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e
+MAVEN_WRAPPER_JAR="$( cd -P "$( dirname "$0" )" && pwd )/maven-wrapper.jar"
+JAVA_CMD="java"
+if [ -n "$JAVA_HOME" ]; then
+  JAVA_CMD="$JAVA_HOME/bin/java"
+fi
+
+if [ ! -e "$MAVEN_WRAPPER_JAR" ]; then
+  echo "Downloading Maven wrapper..."
+  if command -v wget > /dev/null; then
+    wget -q -O "$MAVEN_WRAPPER_JAR" \
+      "https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
+  elif command -v curl > /dev/null; then
+    curl -s -o "$MAVEN_WRAPPER_JAR" \
+      "https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
+  fi
+fi
+
+exec "$JAVA_CMD" -jar "$MAVEN_WRAPPER_JAR" "$@"
