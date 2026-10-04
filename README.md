@@ -1,200 +1,280 @@
-# TaskFlow — Distributed Task Management System
+<div align="center">
 
-Full-stack Kanban app with real-time WebSocket collaboration.
-Spring Boot + React + PostgreSQL + STOMP WebSocket + optional Redis Pub/Sub.
+# TaskFlow
 
-================================================================
-QUICK START — STEP BY STEP
-================================================================
+### Distributed Task Management System
 
-REQUIREMENTS (install these first):
-  - Java 17+          → https://adoptium.net  (download LTS)
-  - Node.js 18+       → https://nodejs.org    (download LTS)
-  - PostgreSQL 15+    → https://www.postgresql.org/download/
-  - Redis 7+ (optional; needed only for multi-node WebSocket broadcasting)
+A full-stack Kanban app with real-time collaboration over WebSockets.
 
-You do NOT need to install Maven separately.
-The project includes mvnw.cmd (Windows) which downloads Maven automatically.
+![Java](https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-optional-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![WebSocket](https://img.shields.io/badge/STOMP-WebSocket-010101?style=for-the-badge&logo=socketdotio&logoColor=white)
 
-================================================================
-STEP 1 — PostgreSQL Setup
-================================================================
+[Features](#-features) •
+[Architecture](#-architecture) •
+[Quick Start](#-quick-start) •
+[API](#-api-reference) •
+[WebSocket](#-websocket-events) •
+[Troubleshooting](#-troubleshooting)
 
-Open Command Prompt and run:
+</div>
 
-    psql -U postgres
+---
 
-Then paste this (press Enter after each line):
+## ✨ Features
 
-    CREATE USER taskflow WITH PASSWORD 'taskflow';
-    CREATE DATABASE taskflow_db OWNER taskflow;
-    \q
+| | Feature | Details |
+|---|---|---|
+| 📋 | **Kanban boards** | Drag-and-drop tasks across configurable columns. New projects are seeded with *To Do*, *In Progress*, *Review* and *Done*. |
+| ⚡ | **Real-time collaboration** | Board changes are broadcast live to everyone in the project via STOMP over SockJS. |
+| 🔐 | **JWT authentication** | Access tokens plus an HTTP-only refresh cookie. |
+| 👥 | **Role-based access control** | Admin and Manager roles gate sensitive actions such as deleting tasks and changing user roles. |
+| 🛡️ | **Optimistic locking** | Task updates and moves use JPA `@Version`. A stale version returns `409 Conflict` with the `currentVersion`. |
+| 🧾 | **Immutable audit log** | Every change is stored as a JSONB old/new value record that can never be edited. |
+| ⏰ | **Deadline engine** | A scheduler runs every 15 minutes and feeds the notification system. |
+| 🔔 | **Notifications** | Personal notification queue delivered over WebSocket and available via REST. |
+| 📊 | **Analytics** | Project stats and an activity log page. |
+| 🌐 | **Multi-node ready** | Optional Redis Pub/Sub for cross-node WebSocket broadcasting. |
 
-Then load the sample data (run from the taskflow-complete folder):
+---
 
-    psql -U taskflow -d taskflow_db -f database/schema.sql
+## 🏗 Architecture
 
-Password: taskflow
-No output = success.
+```mermaid
+flowchart LR
+    A["React Frontend<br/>(port 3000)"] -- "REST + JWT" --> B["Spring Boot API<br/>(port 8080)"]
+    A <-- "STOMP / SockJS" --> B
+    B --> C[("PostgreSQL")]
+    B -. "optional Pub/Sub" .-> D[("Redis")]
+```
 
-================================================================
-STEP 2 — Start Backend (Terminal 1)
-================================================================
+---
 
-    cd taskflow-complete\backend
+## 🚀 Quick Start
 
-Windows:
-    mvnw.cmd spring-boot:run
+### Prerequisites
 
-Mac/Linux:
-    chmod +x mvnw
-    ./mvnw spring-boot:run
+| Tool | Version | Download |
+|---|---|---|
+| Java | 17+ (LTS) | [adoptium.net](https://adoptium.net) |
+| Node.js | 18+ (LTS) | [nodejs.org](https://nodejs.org) |
+| PostgreSQL | 15+ | [postgresql.org](https://www.postgresql.org/download/) |
+| Redis | 7+ *(optional)* | Only needed for multi-node WebSocket broadcasting |
 
-FIRST RUN: This downloads Maven and all dependencies (~100MB).
-Takes 3-5 minutes. Subsequent runs take 10 seconds.
+> [!NOTE]
+> You do **not** need to install Maven. The project ships with the Maven Wrapper (`mvnw` / `mvnw.cmd`), which downloads it automatically.
 
-Wait for:  "Started TaskFlowApplication in X seconds"
-Backend runs at: http://localhost:8080
+> [!TIP]
+> Prefer containers? See [DOCKER.md](DOCKER.md) for the Docker setup.
 
-================================================================
-STEP 3 — Start Frontend (Terminal 2 — keep Terminal 1 open)
-================================================================
+### 1. Clone the repository
 
-    cd taskflow-complete\frontend
+```bash
+git clone https://github.com/HarshSh05/Taskflow.git
+cd Taskflow
+```
 
-    copy .env.example .env        (Windows)
-    cp .env.example .env          (Mac/Linux)
+### 2. Set up PostgreSQL
 
-    npm install
-    npm start
+Open a terminal and start `psql`:
 
-Browser opens automatically at: http://localhost:3000
+```bash
+psql -U postgres
+```
 
-================================================================
-STEP 4 — Login
-================================================================
+Create the user and database:
 
-    Email:    admin@taskflow.com
-    Password: admin123
+```sql
+CREATE USER taskflow WITH PASSWORD 'taskflow';
+CREATE DATABASE taskflow_db OWNER taskflow;
+\q
+```
 
-================================================================
-TROUBLESHOOTING
-================================================================
+Load the schema and sample data from the repository root (password: `taskflow`):
 
-Problem: "mvnw.cmd is not recognized"
-Fix: You must be inside the backend\ folder when running it.
-     cd taskflow-complete\backend
-     then run: mvnw.cmd spring-boot:run
+```bash
+psql -U taskflow -d taskflow_db -f database/schema.sql
+```
 
-Problem: "psql is not recognized"
-Fix: Add PostgreSQL's bin folder to PATH, then restart the terminal.
+### 3. Start the backend
 
-Problem: Port 8080 already in use
-Fix: netstat -ano | findstr :8080
-     taskkill /PID <number> /F
+Open **Terminal 1**:
 
-Problem: npm install ERESOLVE error
-Fix: npm install --legacy-peer-deps
+```bash
+cd backend
+```
 
-Problem: Blank React page
-Fix: Check that .env file exists in frontend\ folder.
-     Stop npm start, check .env, then npm start again.
+<details open>
+<summary><b>macOS / Linux</b></summary>
 
-Problem: "Could not connect to WebSocket"
-Fix: Make sure backend is running first (Terminal 1).
-     The frontend needs the backend on port 8080.
+```bash
+chmod +x mvnw
+./mvnw spring-boot:run
+```
 
-================================================================
-PROJECT STRUCTURE
-================================================================
+</details>
 
-taskflow-complete/
-  backend/
-    mvnw.cmd                     <- Run this on Windows (no Maven needed)
-    mvnw                         <- Run this on Mac/Linux
-    pom.xml
-    src/main/java/com/taskflow/
-      TaskFlowApplication.java
-      config/     SecurityConfig, WebSocketConfig, CorsConfig
-      controller/ AuthController, ProjectController, TaskController...
-      service/    AuthService, ProjectService, TaskService...
-      repository/ JPA repositories (one per entity)
-      entity/     User, Project, BoardColumn, Task, ProjectMember, ActivityLog, Notification
-      dto/        Request + Response DTOs
-      security/   JwtUtil, JwtAuthFilter, UserDetailsServiceImpl
-      exception/  GlobalExceptionHandler + custom exceptions
-    src/main/resources/
-      application.properties
+<details>
+<summary><b>Windows</b></summary>
 
-  frontend/
-    src/
-      App.jsx               <- Router setup
-      index.js              <- Entry point
-      pages/
-        LoginPage.jsx
-        SignupPage.jsx
-        DashboardPage.jsx   <- Project grid
-        ProjectPage.jsx     <- Kanban board with drag-and-drop
-        AnalyticsPage.jsx   <- Stats + activity log
-      components/
-        Navbar.jsx          <- Navigation + notifications
-        TaskModal.jsx       <- Create / edit / delete task
-        MembersPanel.jsx    <- Team management slide-over
-        ProtectedRoute.jsx  <- Auth guard
-      services/
-        api.js              <- Axios with JWT interceptors
-        authService.js
-        projectService.js
-        taskService.js
-        notificationService.js
-      context/
-        AuthContext.jsx     <- JWT state management
-      websocket/
-        useWebSocket.js     <- STOMP client hook
+```bat
+mvnw.cmd spring-boot:run
+```
 
-  database/
-    schema.sql              <- PostgreSQL 15 tables, JSONB audit fields, indexes
+</details>
 
-================================================================
-API ENDPOINTS (all need Authorization: Bearer TOKEN except /auth/*)
-================================================================
+> [!NOTE]
+> The first run downloads Maven and all dependencies (~100 MB) and takes 3-5 minutes. Later runs start in about 10 seconds.
 
-POST  /api/v1/auth/register
-POST  /api/v1/auth/login
-POST  /api/v1/auth/refresh       <- HTTP-only refresh cookie
+Wait for `Started TaskFlowApplication in X seconds`. The API is now live at **http://localhost:8080**.
 
-GET   /api/v1/projects
-POST  /api/v1/projects
-GET   /api/v1/projects/{id}/board
-PATCH /api/v1/projects/{id}/archived
-POST  /api/v1/projects/{id}/columns
-PATCH /api/v1/projects/{id}/columns/{columnId}
-GET   /api/v1/projects/{id}/audit
+### 4. Start the frontend
 
-GET   /api/v1/projects/{id}/tasks
-POST  /api/v1/projects/{id}/tasks
-PATCH /api/v1/tasks/{id}         <- requires the task version
-PATCH /api/v1/tasks/{id}/move    <- requires the task version; returns 409 on a conflict
-DELETE /api/v1/tasks/{id}        <- Manager/Admin only
+Open **Terminal 2** and keep Terminal 1 running:
 
-GET   /api/v1/users/me/notifications
-PATCH /api/v1/admin/users/{id}/role  <- Admin only
+```bash
+cd frontend
+cp .env.example .env      # Windows: copy .env.example .env
+npm install
+npm start
+```
 
-================================================================
-WEBSOCKET
-================================================================
+The app opens automatically at **http://localhost:3000**.
 
-Connect: http://localhost:8080/ws?token=<JWT>  (authenticated SockJS)
-Subscribe: /topic/project/{id}    (board events)
-Personal:  /user/queue/notifications
+### 5. Log in
 
-Events: TASK_CREATED, TASK_UPDATED, TASK_MOVED, TASK_DELETED
+| Field | Value |
+|---|---|
+| Email | `admin@taskflow.com` |
+| Password | `admin123` |
 
-================================================================
-FEATURE NOTES
-================================================================
+> [!WARNING]
+> These are demo credentials from the sample data. Change them before deploying anywhere public.
 
-- Projects seed configurable To Do, In Progress, Review, and Done columns.
-- Task updates and moves use JPA @Version optimistic locking. A stale version returns HTTP 409 with currentVersion.
-- Audit rows are immutable JSONB old/new value records. The deadline engine runs every 15 minutes.
-- Set REDIS_ENABLED=true when Redis is running to enable cross-node WebSocket event broadcasting.
+---
+
+## 🔌 API Reference
+
+All endpoints require `Authorization: Bearer <TOKEN>` except those under `/auth`.
+Base path: `/api/v1`
+
+### Auth
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/auth/register` | Create an account |
+| `POST` | `/auth/login` | Log in and receive a JWT |
+| `POST` | `/auth/refresh` | Refresh the token using the HTTP-only cookie |
+
+### Projects and columns
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/projects` | List projects |
+| `POST` | `/projects` | Create a project |
+| `GET` | `/projects/{id}/board` | Get the full board |
+| `PATCH` | `/projects/{id}/archived` | Archive or unarchive a project |
+| `POST` | `/projects/{id}/columns` | Add a column |
+| `PATCH` | `/projects/{id}/columns/{columnId}` | Update a column |
+| `GET` | `/projects/{id}/audit` | View the audit trail |
+
+### Tasks
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/projects/{id}/tasks` | List tasks in a project |
+| `POST` | `/projects/{id}/tasks` | Create a task |
+| `PATCH` | `/tasks/{id}` | Update a task *(requires the task `version`)* |
+| `PATCH` | `/tasks/{id}/move` | Move a task *(requires `version`, returns `409` on conflict)* |
+| `DELETE` | `/tasks/{id}` | Delete a task *(Manager / Admin only)* |
+
+### Notifications and admin
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/users/me/notifications` | Get your notifications |
+| `PATCH` | `/admin/users/{id}/role` | Change a user's role *(Admin only)* |
+
+---
+
+## 📡 WebSocket Events
+
+**Connect:** `http://localhost:8080/ws?token=<JWT>` (authenticated SockJS)
+
+| Destination | Purpose |
+|---|---|
+| `/topic/project/{id}` | Board events for a project |
+| `/user/queue/notifications` | Your personal notifications |
+
+**Board events:** `TASK_CREATED` · `TASK_UPDATED` · `TASK_MOVED` · `TASK_DELETED`
+
+---
+
+## ⚙️ Configuration
+
+| Variable | Description |
+|---|---|
+| `REDIS_ENABLED` | Set to `true` when Redis is running to enable cross-node WebSocket event broadcasting |
+
+Frontend settings live in `frontend/.env` (copy it from `frontend/.env.example`).
+
+---
+
+## 📁 Project Structure
+
+```text
+Taskflow/
+├── backend/
+│   ├── mvnw / mvnw.cmd                # Maven wrapper (no Maven install needed)
+│   ├── pom.xml
+│   └── src/main/
+│       ├── java/com/taskflow/
+│       │   ├── TaskFlowApplication.java
+│       │   ├── config/                # SecurityConfig, WebSocketConfig, CorsConfig
+│       │   ├── controller/            # Auth, Project, Task controllers...
+│       │   ├── service/               # Business logic
+│       │   ├── repository/            # JPA repositories (one per entity)
+│       │   ├── entity/                # User, Project, BoardColumn, Task,
+│       │   │                          # ProjectMember, ActivityLog, Notification
+│       │   ├── dto/                   # Request and response DTOs
+│       │   ├── security/              # JwtUtil, JwtAuthFilter, UserDetailsServiceImpl
+│       │   └── exception/             # GlobalExceptionHandler + custom exceptions
+│       └── resources/
+│           └── application.properties
+│
+├── frontend/
+│   └── src/
+│       ├── App.jsx                    # Router setup
+│       ├── index.js                   # Entry point
+│       ├── pages/                     # Login, Signup, Dashboard,
+│       │                              # Project (Kanban + drag-and-drop), Analytics
+│       ├── components/                # Navbar, TaskModal, MembersPanel, ProtectedRoute
+│       ├── services/                  # Axios client with JWT interceptors + API wrappers
+│       ├── context/                   # AuthContext (JWT state)
+│       └── websocket/                 # useWebSocket (STOMP client hook)
+│
+├── database/
+│   └── schema.sql                     # PostgreSQL 15 tables, JSONB audit fields, indexes
+│
+├── docker-compose.yml
+├── DOCKER.md
+└── .env.example
+```
+
+---
+
+## 🧰 Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `mvnw.cmd is not recognized` | Make sure you are inside the `backend` folder, then run `mvnw.cmd spring-boot:run`. |
+| `psql is not recognized` | Add PostgreSQL's `bin` folder to your `PATH`, then restart the terminal. |
+| Port 8080 already in use | **Windows:** `netstat -ano \| findstr :8080`, then `taskkill /PID <number> /F`<br>**macOS / Linux:** `lsof -i :8080`, then `kill -9 <PID>` |
+| `npm install` fails with `ERESOLVE` | Run `npm install --legacy-peer-deps`. |
+| Blank React page | Check that `frontend/.env` exists. Stop `npm start`, fix the file, and start it again. |
+| `Could not connect to WebSocket` | Start the backend first. The frontend expects it on port 8080. |
+
+---
