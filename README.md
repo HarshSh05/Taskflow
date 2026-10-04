@@ -13,35 +13,35 @@ A full-stack Kanban app with real-time collaboration over WebSockets.
 ![Redis](https://img.shields.io/badge/Redis-optional-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![WebSocket](https://img.shields.io/badge/STOMP-WebSocket-010101?style=for-the-badge&logo=socketdotio&logoColor=white)
 
-[Features](#-features) •
-[Architecture](#-architecture) •
-[Quick Start](#-quick-start) •
-[API](#-api-reference) •
-[WebSocket](#-websocket-events) •
-[Troubleshooting](#-troubleshooting)
+[Features](#features) •
+[Architecture](#architecture) •
+[Quick Start](#quick-start) •
+[API](#api-reference) •
+[WebSocket](#websocket-events) •
+[Troubleshooting](#troubleshooting)
 
 </div>
 
 ---
 
-## ✨ Features
+## Features
 
-| | Feature | Details |
-|---|---|---|
-| 📋 | **Kanban boards** | Drag-and-drop tasks across configurable columns. New projects are seeded with *To Do*, *In Progress*, *Review* and *Done*. |
-| ⚡ | **Real-time collaboration** | Board changes are broadcast live to everyone in the project via STOMP over SockJS. |
-| 🔐 | **JWT authentication** | Access tokens plus an HTTP-only refresh cookie. |
-| 👥 | **Role-based access control** | Admin and Manager roles gate sensitive actions such as deleting tasks and changing user roles. |
-| 🛡️ | **Optimistic locking** | Task updates and moves use JPA `@Version`. A stale version returns `409 Conflict` with the `currentVersion`. |
-| 🧾 | **Immutable audit log** | Every change is stored as a JSONB old/new value record that can never be edited. |
-| ⏰ | **Deadline engine** | A scheduler runs every 15 minutes and feeds the notification system. |
-| 🔔 | **Notifications** | Personal notification queue delivered over WebSocket and available via REST. |
-| 📊 | **Analytics** | Project stats and an activity log page. |
-| 🌐 | **Multi-node ready** | Optional Redis Pub/Sub for cross-node WebSocket broadcasting. |
+| Feature | Details |
+|---|---|
+| **Kanban boards** | Drag-and-drop tasks across configurable columns. New projects are seeded with *To Do*, *In Progress*, *Review* and *Done*. |
+| **Real-time collaboration** | Board changes are broadcast live to everyone in the project via STOMP over SockJS. |
+| **JWT authentication** | Access tokens plus an HTTP-only refresh cookie. |
+| **Role-based access control** | Admin and Manager roles gate sensitive actions such as deleting tasks and changing user roles. |
+| **Optimistic locking** | Task updates and moves use JPA `@Version`. A stale version returns `409 Conflict` with the `currentVersion`. |
+| **Immutable audit log** | Every change is stored as a JSONB old/new value record that can never be edited. |
+| **Deadline engine** | A scheduler runs every 15 minutes and feeds the notification system. |
+| **Notifications** | Personal notification queue delivered over WebSocket and available via REST. |
+| **Analytics** | Project stats and an activity log page. |
+| **Multi-node ready** | Optional Redis Pub/Sub for cross-node WebSocket broadcasting. |
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -53,7 +53,7 @@ flowchart LR
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -156,7 +156,7 @@ The app opens automatically at **http://localhost:3000**.
 
 ---
 
-## 🔌 API Reference
+## API Reference
 
 All endpoints require `Authorization: Bearer <TOKEN>` except those under `/auth`.
 Base path: `/api/v1`
@@ -200,7 +200,7 @@ Base path: `/api/v1`
 
 ---
 
-## 📡 WebSocket Events
+## WebSocket Events
 
 **Connect:** `http://localhost:8080/ws?token=<JWT>` (authenticated SockJS)
 
@@ -213,7 +213,7 @@ Base path: `/api/v1`
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 | Variable | Description |
 |---|---|
@@ -223,7 +223,7 @@ Frontend settings live in `frontend/.env` (copy it from `frontend/.env.example`)
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 Taskflow/
@@ -266,7 +266,7 @@ Taskflow/
 
 ---
 
-## 🧰 Troubleshooting
+## Troubleshooting
 
 | Problem | Fix |
 |---|---|
